@@ -4,7 +4,7 @@ using Movies.API.Data;
 using NuGet.Protocol;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<MoviesAPIContext>(options =>
-    options.UseInMemoryDatabase("MoviesAPIContext" ?? throw new InvalidOperationException("Connection string 'MoviesAPIContext' not found.")));
+    options.UseInMemoryDatabase("Movies"));
 
 // Add services to the container.
 
@@ -21,6 +21,11 @@ builder.Services.AddAuthentication("Bearer")
             ValidateAudience = false
         };
     });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ClientPolicy", policy => policy.RequireClaim("client_id", "movieClient"));
+});
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
@@ -36,7 +41,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
